@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Is your organization ready for Entasis?</title>
+    <style>
+        :root {
+            /* Entasis Brand Palette */
+            --entasis-navy: #1e2a4a; /* Deep Navy */
+            --entasis-grey: #a0aab6; /* Professional Grey */
+            --entasis-light-grey: #f4f7f9;
+            --white: #ffffff;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--entasis-light-grey);
+            color: var(--entasis-navy);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        #quiz-container {
+            background: var(--white);
+            padding: 50px;
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(30, 42, 74, 0.1);
+            max-width: 650px;
+            width: 100%;
+            text-align: center;
+            border-top: 6px solid var(--entasis-navy);
+        }
+        .logo-container {
+            margin-bottom: 30px;
+        }
+        .logo-container img {
+            max-width: 220px;
+            height: auto;
+        }
+        h1 { 
+            color: var(--entasis-navy); 
+            font-size: 1.6rem; 
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            color: var(--entasis-grey);
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+        .question { 
+            font-size: 1.3rem; 
+            margin-bottom: 40px; 
+            display: none; 
+            min-height: 100px;
+            line-height: 1.5;
+        }
+        .active { display: block; animation: fadeIn 0.4s ease-in; }
+        .btn-container { display: flex; justify-content: center; gap: 15px; }
+        button {
+            padding: 14px 40px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: 2px solid var(--entasis-navy);
+            border-radius: 0px; /* Modern architectural feel */
+            transition: all 0.3s;
+            background-color: var(--white);
+            color: var(--entasis-navy);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        button:hover { 
+            background-color: var(--entasis-navy); 
+            color: var(--white);
+        }
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            margin-bottom: 40px;
+        }
+        #progress-fill {
+            height: 100%;
+            background: var(--entasis-grey);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        #result-container { display: none; }
+        .score-circle {
+            width: 120px; height: 120px;
+            border: 4px solid var(--entasis-navy);
+            border-radius: 50%;
+            color: var(--entasis-navy);
+            line-height: 120px;
+            font-size: 1.8rem;
+            margin: 30px auto;
+            font-weight: bold;
+        }
+        #result-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #444;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div class="logo-container">
+        <img src="logo.png" alt="Entasis Logo">
+    </div>
+    
+    <h1>Readiness Assessment</h1>
+    <p class="subtitle">Is your organization ready for Entasis?</p>
+
+    <div class="progress-bar"><div id="progress-fill"></div></div>
+
+    <div id="questions-wrapper">
+        </div>
+
+    <div id="result-container">
+        <h2>Readiness Profile</h2>
+        <div class="score-circle" id="score">0%</div>
+        <p id="result-text"></p>
+        <button onclick="location.reload()">Reset Assessment</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "Do you have full strategic alignment throughout your organization?", weight: "negative" },
+        { q: "Do your people understand your business plan, cascade it and ladder feedback?", weight: "negative" },
+        { q: "Do you have challenges with collaboration and cross-functional alignment?", weight: "positive" },
+        { q: "Do you struggle with a cluttered communications calendar?", weight: "positive" },
+        { q: "Do you have underperforming parts to your business?", weight: "positive" },
+        { q: "Do you have trust challenges where people don’t feel comfortable sharing open feedback?", weight: "positive" },
+        { q: "Today can you easily spot and share best practices?", weight: "negative" },
+        { q: "Do you want to improve employee engagement?", weight: "positive" },
+        { q: "Do your people feel connected to your purpose and values and know how their work contributes?", weight: "negative" },
+        { q: "Do you want greater organization wide visibility to performance and gaps?", weight: "positive" }
+    ];
+
+    let currentIdx = 0;
+    let pointOfNeed = 0;
+
+    function init() {
+        const wrapper = document.getElementById('questions-wrapper');
+        questions.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = `question ${index === 0 ? 'active' : ''}`;
+            div.id = `q-${index}`;
+            div.innerHTML = `
+                <p>${item.q}</p>
+                <div class="btn-container">
+                    <button onclick="answer(true, ${index})">Yes</button>
+                    <button onclick="answer(false, ${index})">No</button>
+                </div>
+            `;
+            wrapper.appendChild(div);
+        });
+    }
+
+    function answer(isYes, index) {
+        const type = questions[index].weight;
+        if ((type === "positive" && isYes) || (type === "negative" && !isYes)) {
+            pointOfNeed++;
+        }
+
+        document.getElementById(`q-${index}`).classList.remove('active');
+        currentIdx++;
+        
+        const progress = (currentIdx / questions.length) * 100;
+        document.getElementById('progress-fill').style.width = `${progress}%`;
+
+        if (currentIdx < questions.length) {
+            document.getElementById(`q-${currentIdx}`).classList.add('active');
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.querySelector('.progress-bar').style.display = 'none';
+        document.querySelector('h1').style.display = 'none';
+        document.querySelector('.subtitle').style.display = 'none';
+        document.getElementById('result-container').style.display = 'block';
+        
+        const finalScore = (pointOfNeed / questions.length) * 100;
+        document.getElementById('score').innerText = finalScore + "%";
+
+        let message = "";
+        if (finalScore >= 70) {
+            message = "Your organization is at a critical juncture. Entasis is designed precisely to bridge these gaps in alignment, trust, and visibility by serving as your pioneering agentic partner.";
+        } else if (finalScore >= 40) {
+            message = "You have a solid foundation, but there are clear 'blind spots' slowing your momentum. Entasis can help reimagine your future of work through meaningful contributions and performance science.";
+        } else {
+            message = "Your organization is performing well, but there is always room to reach your personal best. Entasis can help you look around corners to create a lasting competitive advantage.";
+        }
+        document.getElementById('result-text').innerText = message;
+    }
+
+    init();
+</script>
+
+</body>
+</html>
